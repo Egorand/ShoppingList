@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">ShoppingList</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="logout">Logout</string>
+    <string name="new_item_title">New item title</string>
+    <string name="add_item">Add item</string>
+    <string name="list_empty">Your shopping list is empty</string>
+</resources>
