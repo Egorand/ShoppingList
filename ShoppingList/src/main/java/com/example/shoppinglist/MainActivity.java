@@ -2,7 +2,11 @@ package com.example.shoppinglist;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
@@ -46,6 +50,8 @@ public class MainActivity extends RoboFragmentActivity implements LoaderManager.
 
     private ShoppingListSQLiteHelper dbHelper;
 
+    private SyncFinishedReceiver syncFinishedReceiver;
+
     @InjectView(android.R.id.list)
     private ListView listView;
     @InjectView(R.id.addNewItemLayout)
@@ -66,8 +72,23 @@ public class MainActivity extends RoboFragmentActivity implements LoaderManager.
         addNewItemBtn.setOnClickListener(this);
         if (checkRegistration()) {
             Toast.makeText(this, "Welcome!", Toast.LENGTH_LONG).show();
-            loaderManager.initLoader(0, null, this);
         }
+        this.syncFinishedReceiver = new SyncFinishedReceiver();
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loaderManager.restartLoader(0, null, this);
+        IntentFilter filter = new IntentFilter(SyncFinishedReceiver.ACTION_SYNC_FINISHED);
+        registerReceiver(syncFinishedReceiver, filter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(syncFinishedReceiver);
     }
 
     @Override
@@ -86,6 +107,11 @@ public class MainActivity extends RoboFragmentActivity implements LoaderManager.
         } else if (item.getItemId() == R.id.add) {
             addNewItemLayout.setVisibility(View.VISIBLE);
             addNewItemEt.requestFocus();
+        } else if (item.getItemId() == R.id.refresh) {
+            Bundle bundle = new Bundle();
+            bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+            bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+            ContentResolver.requestSync(AccountUtils.getAccount(this, ShoppingListAccountInfo.ACCOUNT_TYPE), ShoppingListAccountInfo.AUTHORITY, bundle);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -143,6 +169,16 @@ public class MainActivity extends RoboFragmentActivity implements LoaderManager.
                 addNewItemLayout.setVisibility(View.GONE);
                 loaderManager.restartLoader(0, null, this);
             }
+        }
+    }
+
+    public class SyncFinishedReceiver extends BroadcastReceiver {
+
+        public static final String ACTION_SYNC_FINISHED = "sync_finished";
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            loaderManager.restartLoader(0, null, MainActivity.this);
         }
     }
 }

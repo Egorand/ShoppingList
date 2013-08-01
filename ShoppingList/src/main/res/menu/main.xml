@@ -5,6 +5,11 @@
             android:icon="@android:drawable/ic_menu_add"
             android:showAsAction="ifRoom"/>
     <item
+            android:id="@+id/refresh"
+            android:title="@string/refresh"
+            android:icon="@android:drawable/ic_popup_sync"
+            android:showAsAction="ifRoom"/>
+    <item
             android:id="@+id/logout"
             android:title="@string/logout"
             android:showAsAction="never"/>
