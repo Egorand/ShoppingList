@@ -18,6 +18,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,6 +44,7 @@ public class MainActivity extends RoboFragmentActivity implements LoaderManager.
         View.OnClickListener {
 
     public static final int REQUEST_LOGIN = 1;
+    public static final int SHOPPING_ITEMS_LOADER = 2;
 
     @Inject
     private AccountManager accountManager;
@@ -62,6 +64,10 @@ public class MainActivity extends RoboFragmentActivity implements LoaderManager.
     private ImageButton addNewItemBtn;
     @InjectView(R.id.emptyView)
     private TextView emptyView;
+    @InjectView(R.id.spinner)
+    private ProgressBar spinner;
+
+    private MenuItem refreshItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +86,7 @@ public class MainActivity extends RoboFragmentActivity implements LoaderManager.
     @Override
     protected void onResume() {
         super.onResume();
-        loaderManager.restartLoader(0, null, this);
+        loaderManager.restartLoader(SHOPPING_ITEMS_LOADER, null, this);
         IntentFilter filter = new IntentFilter(SyncFinishedReceiver.ACTION_SYNC_FINISHED);
         registerReceiver(syncFinishedReceiver, filter);
     }
@@ -108,10 +114,15 @@ public class MainActivity extends RoboFragmentActivity implements LoaderManager.
             addNewItemLayout.setVisibility(View.VISIBLE);
             addNewItemEt.requestFocus();
         } else if (item.getItemId() == R.id.refresh) {
+            if (refreshItem == null) {
+                refreshItem = item;
+            }
             Bundle bundle = new Bundle();
             bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
             bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
             ContentResolver.requestSync(AccountUtils.getAccount(this, ShoppingListAccountInfo.ACCOUNT_TYPE), ShoppingListAccountInfo.AUTHORITY, bundle);
+            spinner.setVisibility(View.VISIBLE);
+            item.setEnabled(false);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -122,8 +133,7 @@ public class MainActivity extends RoboFragmentActivity implements LoaderManager.
         if (resultCode == RESULT_OK) {
             if (requestCode == REQUEST_LOGIN) {
                 if (checkRegistration()) {
-                    Toast.makeText(this, "Welcome!", Toast.LENGTH_LONG).show();
-                    loaderManager.initLoader(0, null, this);
+                    loaderManager.initLoader(SHOPPING_ITEMS_LOADER, null, this);
                 }
             }
         } else {
@@ -153,11 +163,19 @@ public class MainActivity extends RoboFragmentActivity implements LoaderManager.
     public void onLoadFinished(Loader<List<ShoppingItem>> loader, List<ShoppingItem> data) {
         ArrayAdapter<ShoppingItem> adapter = new ArrayAdapter<ShoppingItem>(this, android.R.layout.simple_list_item_1, data);
         listView.setAdapter(adapter);
+        spinner.setVisibility(View.INVISIBLE);
+        if (refreshItem != null) {
+            refreshItem.setEnabled(true);
+        }
     }
 
     @Override
     public void onLoaderReset(Loader<List<ShoppingItem>> loader) {
         listView.setAdapter(null);
+        spinner.setVisibility(View.INVISIBLE);
+        if (refreshItem != null) {
+            refreshItem.setEnabled(true);
+        }
     }
 
     @Override
@@ -167,7 +185,7 @@ public class MainActivity extends RoboFragmentActivity implements LoaderManager.
                 ShoppingItem item = new ShoppingItem(addNewItemEt.getText().toString());
                 dbHelper.getShoppingItemsDao().create(item);
                 addNewItemLayout.setVisibility(View.GONE);
-                loaderManager.restartLoader(0, null, this);
+                loaderManager.restartLoader(SHOPPING_ITEMS_LOADER, null, this);
             }
         }
     }
@@ -178,7 +196,7 @@ public class MainActivity extends RoboFragmentActivity implements LoaderManager.
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            loaderManager.restartLoader(0, null, MainActivity.this);
+            loaderManager.restartLoader(SHOPPING_ITEMS_LOADER, null, MainActivity.this);
         }
     }
 }

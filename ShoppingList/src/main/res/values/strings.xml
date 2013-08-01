@@ -7,4 +7,5 @@
     <string name="add_item">Add item</string>
     <string name="list_empty">Your shopping list is empty</string>
     <string name="refresh">Refresh</string>
+    <string name="shopping_list">Shopping List</string>
 </resources>

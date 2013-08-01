@@ -1,7 +1,5 @@
 package com.example.shoppinglist.auth;
 
-import com.example.shoppinglist.ShoppingListAuthenticationClient;
-
 /**
  * Created by eandreevici on 31/07/13.
  */

@@ -17,7 +17,6 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.example.shoppinglist.auth.AccountUtils;
 import com.example.shoppinglist.auth.IAuthenticationClient;
 import com.example.shoppinglist.auth.ShoppingListAccountInfo;
 
@@ -68,7 +67,7 @@ public class LoginActivity extends AccountAuthenticatorActivity {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == R.id.login || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
+                    attemptLogin(false);
                     return true;
                 }
                 return false;
@@ -85,7 +84,14 @@ public class LoginActivity extends AccountAuthenticatorActivity {
         findViewById(R.id.sign_in_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                attemptLogin();
+                attemptLogin(false);
+            }
+        });
+
+        findViewById(R.id.sign_up_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                attemptLogin(true);
             }
         });
 
@@ -98,7 +104,7 @@ public class LoginActivity extends AccountAuthenticatorActivity {
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual main attempt is made.
      */
-    public void attemptLogin() {
+    public void attemptLogin(boolean newUser) {
         if (mAuthTask != null) {
             return;
         }
@@ -145,7 +151,7 @@ public class LoginActivity extends AccountAuthenticatorActivity {
             // perform the user main attempt.
             mLoginStatusMessageView.setText(R.string.login_progress_signing_in);
             showProgress(true);
-            mAuthTask = new UserLoginTask();
+            mAuthTask = new UserLoginTask(newUser);
             mAuthTask.execute((Void) null);
         }
     }
@@ -196,26 +202,31 @@ public class LoginActivity extends AccountAuthenticatorActivity {
      */
     public class UserLoginTask extends AsyncTask<Void, Void, Intent> {
 
+        private final boolean newUser;
+
+        public UserLoginTask(boolean newUser) {
+            this.newUser = newUser;
+        }
+
         @Override
         protected Intent doInBackground(Void... params) {
             Bundle data = new Bundle();
             String authToken = null;
-            if (AccountUtils.isAccountRegistered(LoginActivity.this, ShoppingListAccountInfo.ACCOUNT_TYPE)) {
-                authToken = authenticationClient.signIn(mEmail, mPassword);
-            } else {
-                authToken = authenticationClient.signUp(mEmail, mPassword);
-                data.putBoolean(ARG_NEW_USER, true);
-                if (authToken == null) {
+            try {
+                if (newUser) {
+                    authToken = authenticationClient.signUp(mEmail, mPassword);
+                    data.putBoolean(ARG_NEW_USER, true);
+                } else {
                     authToken = authenticationClient.signIn(mEmail, mPassword);
                 }
+            } catch (Exception e) {
+                data.putString(AccountManager.KEY_ERROR_MESSAGE, e.getLocalizedMessage());
             }
             if (authToken != null) {
                 data.putString(AccountManager.KEY_ACCOUNT_NAME, mEmail);
                 data.putString(AccountManager.KEY_ACCOUNT_TYPE, ShoppingListAccountInfo.ACCOUNT_TYPE);
                 data.putString(AccountManager.KEY_AUTHTOKEN, authToken);
                 data.putString(ARG_PASSWORD, mPassword);
-            } else {
-                data.putString(AccountManager.KEY_ERROR_MESSAGE, "Auth failed");
             }
             Intent result = new Intent();
             result.putExtras(data);
@@ -228,7 +239,7 @@ public class LoginActivity extends AccountAuthenticatorActivity {
             showProgress(false);
 
             if (intent.hasExtra(AccountManager.KEY_ERROR_MESSAGE)) {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
+                mPasswordView.setError(intent.getStringExtra(AccountManager.KEY_ERROR_MESSAGE));
                 mPasswordView.requestFocus();
             } else {
                 finishLogin(intent);
@@ -248,9 +259,7 @@ public class LoginActivity extends AccountAuthenticatorActivity {
         String accountType = intent.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE);
         String authToken = intent.getStringExtra(AccountManager.KEY_AUTHTOKEN);
         Account account = new Account(accountName, accountType);
-        if (intent.getExtras().getBoolean(ARG_NEW_USER, false)) {
-            accountManager.addAccountExplicitly(account, accountPassword, null);
-        } else {
+        if (!accountManager.addAccountExplicitly(account, accountPassword, null)) {
             accountManager.setPassword(account, accountPassword);
         }
         accountManager.setAuthToken(account, ShoppingListAccountInfo.AUTHTOKEN_TYPE_STANDARD, authToken);

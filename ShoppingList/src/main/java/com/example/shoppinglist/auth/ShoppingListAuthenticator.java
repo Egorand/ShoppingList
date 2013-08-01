@@ -11,8 +11,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 
 import com.example.shoppinglist.LoginActivity;
-import com.example.shoppinglist.auth.IAuthenticationClient;
-import com.example.shoppinglist.auth.ShoppingListAccountInfo;
 
 /**
  * Created by eandreevici on 31/07/13.
@@ -50,7 +48,13 @@ public class ShoppingListAuthenticator extends AbstractAccountAuthenticator {
         if (TextUtils.isEmpty(authToken)) {
             String password = accountManager.getPassword(account);
             if (password != null) {
-                authToken = authClient.signIn(account.name, password);
+                try {
+                    authToken = authClient.signIn(account.name, password);
+                } catch (Exception e) {
+                    Bundle bundle = new Bundle();
+                    bundle.putString(AccountManager.KEY_ERROR_MESSAGE, e.getLocalizedMessage());
+                    return bundle;
+                }
             }
         }
         if (!TextUtils.isEmpty(authToken)) {

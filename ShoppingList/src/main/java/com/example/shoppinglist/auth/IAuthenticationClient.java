@@ -14,7 +14,7 @@ public interface IAuthenticationClient {
      * @param password User's password
      * @return Authentication token for this user
      */
-    String signUp(final String email, final String password);
+    String signUp(final String email, final String password) throws Exception;
 
     /**
      * Log in the user with specified credentials.
@@ -23,7 +23,7 @@ public interface IAuthenticationClient {
      * @param password User's password
      * @return Authentication token for this user
      */
-    String signIn(final String email, final String password);
+    String signIn(final String email, final String password) throws Exception;
 
     /**
      * Check whether current user is authenticated on this device.

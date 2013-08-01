@@ -1,50 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent">
 
-    <RelativeLayout
-            android:id="@+id/addNewItemLayout"
+    <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#DDD"
-            android:visibility="gone">
+            android:layout_height="match_parent">
 
-        <ImageButton
-                android:id="@+id/addNewItemBtn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:padding="10dip"
-                android:background="@android:color/transparent"
-                android:src="@android:drawable/ic_menu_save"/>
-
-        <EditText
-                android:id="@+id/newItemEt"
+        <RelativeLayout
+                android:id="@+id/addNewItemLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_toLeftOf="@id/addNewItemBtn"
-                android:layout_margin="5dip"
-                android:layout_alignBottom="@id/addNewItemBtn"
-                android:singleLine="true"
-                android:hint="@string/new_item_title"
-                android:inputType="textAutoComplete"/>
+                android:background="#DDD"
+                android:visibility="gone">
 
-    </RelativeLayout>
+            <ImageButton
+                    android:id="@+id/addNewItemBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:padding="10dip"
+                    android:background="@android:color/transparent"
+                    android:src="@android:drawable/ic_menu_save"/>
 
-    <ListView
-            android:id="@android:id/list"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            <EditText
+                    android:id="@+id/newItemEt"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_toLeftOf="@id/addNewItemBtn"
+                    android:layout_margin="5dip"
+                    android:layout_alignBottom="@id/addNewItemBtn"
+                    android:singleLine="true"
+                    android:hint="@string/new_item_title"
+                    android:inputType="textAutoComplete"/>
 
-    <TextView
-            android:id="@+id/emptyView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:textAppearance="?android:textAppearanceSmall"
-            android:text="@string/list_empty"/>
+        </RelativeLayout>
 
-</LinearLayout>
+        <ListView
+                android:id="@android:id/list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+        <TextView
+                android:id="@+id/emptyView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textAppearance="?android:textAppearanceSmall"
+                android:text="@string/list_empty"/>
+
+    </LinearLayout>
+
+    <ProgressBar
+            android:id="@+id/spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:visibility="invisible"/>
+
+</FrameLayout>
